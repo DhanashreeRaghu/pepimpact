@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <title>Planner Agent Interface</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Planner Agent Interface</h1>
+        
+        <div class="prompt-section">
+            <h2>Prompt Input</h2>
+            <textarea id="promptInput" placeholder="Enter your prompt here..." maxlength="1000" aria-label="Prompt input"></textarea>
+            <div class="controls">
+                <button id="submitPrompt" aria-label="Submit prompt">Submit</button>
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <h2>Prompt Result</h2>
+            <div id="promptResult" class="result-box" aria-live="polite">
+                <p class="placeholder">Results will appear here...</p>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <h2>Prompt History</h2>
+            <div id="promptHistory" class="history-box">
+                <p class="placeholder">Your history will appear here...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
