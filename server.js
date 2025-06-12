@@ -7,6 +7,16 @@ const rateLimit = require('express-rate-limit');
 const xss = require('xss-clean');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const dotenv = require('dotenv');
+const { BedrockAgentRuntimeClient, InvokeAgentCommand } = require('@aws-sdk/client-bedrock-agent-runtime');
+
+// Load environment variables
+dotenv.config();
+
+// Initialize AWS Bedrock Agent client
+const bedrockAgentClient = new BedrockAgentRuntimeClient({
+  region: process.env.AWS_REGION || 'us-east-1'
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,9 +65,8 @@ app.post('/api/planner', async (req, res) => {
       return res.status(400).json({ error: 'Prompt exceeds maximum length' });
     }
     
-    // In a real application, this would call your actual planner agent
-    // For now, we'll simulate a response
-    const result = await simulatePlannerAgent(prompt, history);
+    // Call AWS Bedrock Agent
+    const result = await invokeBedRockAgent(prompt, history);
     
     // Update session history with sanitized data
     const sanitizedPrompt = prompt.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
@@ -104,18 +113,50 @@ app.listen(PORT, () => {
   console.log(`PEPImpact server running on http://localhost:${PORT}`);
 });
 
-// Function to simulate planner agent response
-// In a real application, this would be replaced with actual API calls to your planner agent
-async function simulatePlannerAgent(prompt, history) {
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Simple response based on prompt
+// Function to invoke AWS Bedrock Agent
+async function invokeBedRockAgent(prompt, history) {
+  try {
+    const agentId = process.env.BEDROCK_AGENT_ID;
+    const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID;
+    
+    if (!agentId || !agentAliasId) {
+      console.warn('Bedrock Agent ID or Alias ID not configured. Using fallback response.');
+      return fallbackResponse(prompt);
+    }
+    
+    // Prepare the input for the Bedrock Agent
+    const input = {
+      agentId: agentId,
+      agentAliasId: agentAliasId,
+      sessionId: Date.now().toString(), // Generate a unique session ID
+      inputText: prompt
+    };
+    
+    // Create the command
+    const command = new InvokeAgentCommand(input);
+    
+    // Invoke the Bedrock Agent
+    const response = await bedrockAgentClient.send(command);
+    
+    // Extract and return the response
+    if (response.completion) {
+      return response.completion;
+    } else {
+      throw new Error('No completion in response');
+    }
+  } catch (error) {
+    console.error('Error invoking Bedrock Agent:', error);
+    return fallbackResponse(prompt);
+  }
+}
+
+// Fallback response when Bedrock Agent is unavailable
+function fallbackResponse(prompt) {
   if (prompt.toLowerCase().includes('plan')) {
     return `Here's a plan based on your request:\n\n1. Analyze requirements\n2. Design solution\n3. Implement core functionality\n4. Test and validate\n5. Deploy to production`;
   } else if (prompt.toLowerCase().includes('help')) {
     return `I can help you plan and organize tasks. Try asking me to create a plan for a specific project or goal.`;
   } else {
-    return `I received your prompt: "${prompt}"\n\nThis is a simulated response from PEPImpact. In a real implementation, this would connect to your actual backend planner agent.`;
+    return `I received your prompt: "${prompt}"\n\nThis is a fallback response as the Bedrock Agent is currently unavailable. Please check your configuration or try again later.`;
   }
 }

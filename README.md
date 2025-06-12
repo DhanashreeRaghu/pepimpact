@@ -1,14 +1,42 @@
 # PEPImpact
 
-A secure web interface for interacting with a planner agent, featuring prompt input, results display, and history tracking.
+A secure web interface for interacting with AWS Bedrock Agent, featuring prompt input, results display, and history tracking.
 
 ## Features
 
 - Input area for entering prompts
 - Display area for viewing results
 - History section on the left side to track past prompts and responses
-- API for communicating with a backend planner agent
+- Integration with AWS Bedrock Agent using InvokeAgentCommand
 - Security features including XSS protection, CSRF protection, and rate limiting
+
+## AWS Bedrock Agent Integration
+
+PEPImpact now integrates with AWS Bedrock Agent to provide intelligent responses to user prompts. The application uses the AWS SDK for JavaScript to communicate with the Bedrock Agent Runtime API.
+
+## Setup
+
+1. Copy `.env.example` to `.env` and configure your environment variables:
+   ```
+   cp .env.example .env
+   ```
+
+2. Update the `.env` file with your AWS Bedrock Agent details:
+   ```
+   AWS_REGION=your-aws-region
+   BEDROCK_AGENT_ID=your-agent-id
+   BEDROCK_AGENT_ALIAS_ID=your-agent-alias-id
+   ```
+
+3. Install dependencies:
+   ```
+   npm install
+   ```
+
+4. Start the server:
+   ```
+   npm start
+   ```
 
 ## Security Features
 
