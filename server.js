@@ -23,6 +23,7 @@ const bedrockAgentClient = new BedrockAgentRuntimeClient({
 });
 
 const app = express();
+app.set('trust proxy', 1); // <-- Add this line
 const PORT = process.env.PORT || 3000;
 
 // Security middleware
