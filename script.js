@@ -8,8 +8,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load history from localStorage
     loadHistory();
     
+    // Add event listener for Enter key in the input field
+    promptInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            submitPrompt();
+        }
+    });
+    
     // Event listener for submit button
-    submitButton.addEventListener('click', async function() {
+    submitButton.addEventListener('click', submitPrompt);
+    
+    // Function to handle prompt submission
+    async function submitPrompt() {
         const prompt = promptInput.value.trim();
         
         if (!prompt) {
@@ -63,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             promptResult.innerHTML = `<div class="error">Error: ${sanitizeOutput(error.message)}</div>`;
         }
-    });
+    }
     
     // Function to save prompt and result to history
     function saveToHistory(prompt, result) {
