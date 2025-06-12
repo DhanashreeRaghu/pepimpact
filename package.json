@@ -1,7 +1,7 @@
 {
-  "name": "planner-agent-webui",
+  "name": "pepimpact",
   "version": "1.0.0",
-  "description": "Web UI for interacting with a planner agent",
+  "description": "PEPImpact - Web UI for interacting with a planner agent",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

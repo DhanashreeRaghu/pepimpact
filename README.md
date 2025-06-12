@@ -1,4 +1,4 @@
-# Planner Agent Web UI
+# PEPImpact
 
 A secure web interface for interacting with a planner agent, featuring prompt input, results display, and history tracking.
 
@@ -6,7 +6,7 @@ A secure web interface for interacting with a planner agent, featuring prompt in
 
 - Input area for entering prompts
 - Display area for viewing results
-- History section to track past prompts and responses
+- History section on the left side to track past prompts and responses
 - API for communicating with a backend planner agent
 - Security features including XSS protection, CSRF protection, and rate limiting
 

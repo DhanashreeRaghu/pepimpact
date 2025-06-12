@@ -101,7 +101,7 @@ app.use((err, req, res, next) => {
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`PEPImpact server running on http://localhost:${PORT}`);
 });
 
 // Function to simulate planner agent response
@@ -116,6 +116,6 @@ async function simulatePlannerAgent(prompt, history) {
   } else if (prompt.toLowerCase().includes('help')) {
     return `I can help you plan and organize tasks. Try asking me to create a plan for a specific project or goal.`;
   } else {
-    return `I received your prompt: "${prompt}"\n\nThis is a simulated response from the planner agent. In a real implementation, this would connect to your actual backend planner agent.`;
+    return `I received your prompt: "${prompt}"\n\nThis is a simulated response from PEPImpact. In a real implementation, this would connect to your actual backend planner agent.`;
   }
 }
