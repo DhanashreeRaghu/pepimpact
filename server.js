@@ -129,9 +129,9 @@ async function invokeBedRockAgent(prompt, history) {
       return fallbackResponse(prompt);
     }
     
-    // Hardcoded Bedrock Agent ID and Alias ID
-    const agentId = "WYHH6PBYJQ";
-    const agentAliasId = "SYZPYK4YHY";
+    // Get Bedrock Agent ID and Alias ID from environment variables
+    const agentId = process.env.BEDROCK_AGENT_ID;
+    const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID;
     
     console.log("Preparing Bedrock Agent request");
     
