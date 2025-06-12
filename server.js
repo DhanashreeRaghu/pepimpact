@@ -116,9 +116,9 @@ app.listen(PORT, () => {
 // Function to invoke AWS Bedrock Agent
 async function invokeBedRockAgent(prompt, history) {
   try {
-    const agentId = process.env.BEDROCK_AGENT_ID;
-    const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID;
-    
+    const agentId = WYHH6PBYJQ;
+    // const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID;
+    const agentAliasId = SYZPYK4YHY;
     if (!agentId || !agentAliasId) {
       console.warn('Bedrock Agent ID or Alias ID not configured. Using fallback response.');
       return fallbackResponse(prompt);
