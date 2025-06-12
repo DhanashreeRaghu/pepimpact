@@ -123,7 +123,7 @@ async function invokeBedRockAgent(prompt, history) {
       console.warn('Bedrock Agent ID or Alias ID not configured. Using fallback response.');
       return fallbackResponse(prompt);
     }
-    
+    console.log("framing inputs");
     // Prepare the input for the Bedrock Agent
     const input = {
       agentId: agentId,
@@ -131,13 +131,13 @@ async function invokeBedRockAgent(prompt, history) {
       sessionId: Date.now().toString(), // Generate a unique session ID
       inputText: prompt
     };
-    
+    console.log("initializing the agentcommand");
     // Create the command
     const command = new InvokeAgentCommand(input);
-    
+    console.log("Invoking the agent; awaiting for response");
     // Invoke the Bedrock Agent
     const response = await bedrockAgentClient.send(command);
-    
+    console.log("response received");
     // Extract and return the response
     if (response.completion) {
       return response.completion;
