@@ -15,7 +15,11 @@ dotenv.config();
 
 // Initialize AWS Bedrock Agent client
 const bedrockAgentClient = new BedrockAgentRuntimeClient({
-  region: process.env.AWS_REGION || 'us-east-1'
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: 'ASIAQQDCXM7VQU36M2XP',     // Replace with your actual AWS access key
+    secretAccessKey: 'wSwJhdTYbDJ0gZT+d+uTVSe2tGmA6g+3xbC1v9ex'  // Replace with your actual AWS secret key
+  }
 });
 
 const app = express();
@@ -116,6 +120,14 @@ app.listen(PORT, () => {
 // Function to invoke AWS Bedrock Agent
 async function invokeBedRockAgent(prompt, history) {
   try {
+    // Check if we should use the real Bedrock Agent or fallback
+    const useRealAgent = false; // Set to true when AWS credentials are properly configured
+    
+    if (!useRealAgent) {
+      console.log("Using fallback response (AWS credentials not configured)");
+      return fallbackResponse(prompt);
+    }
+    
     // Hardcoded Bedrock Agent ID and Alias ID
     const agentId = "WYHH6PBYJQ";
     const agentAliasId = "SYZPYK4YHY";
