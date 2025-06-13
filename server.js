@@ -49,7 +49,10 @@ app.use('/api/', limiter);
 // Middleware
 app.use(bodyParser.json({ limit: '10kb' })); // Body limit is 10kb
 app.use(cookieParser()); // Parse cookies
-app.use(express.static(path.join(__dirname), {
+// Determine the static file path based on environment
+const staticPath = process.env.NODE_ENV === 'production' ? '/app' : path.join(__dirname);
+
+app.use(express.static(staticPath, {
   setHeaders: (res, path) => {
     if (path.endsWith('.js')) {
       res.setHeader('Content-Type', 'application/javascript');
@@ -140,7 +143,8 @@ app.post('/api/test-bedrock', async (req, res) => {
 
 // Serve the main HTML file
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  const htmlPath = process.env.NODE_ENV === 'production' ? '/app/index.html' : path.join(__dirname, 'index.html');
+  res.sendFile(htmlPath);
 });
 
 // Error handling middleware
@@ -153,8 +157,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`PEPImpact server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`PEPImpact server running on port ${PORT}`);
 });
 
 // Function to invoke AWS Bedrock Agent
