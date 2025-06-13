@@ -202,6 +202,15 @@ async function invokeBedRockAgent(prompt, history) {
     // Extract the response based on its structure
     if (response && response.completion) {
       console.log("Found response.completion");
+       // Handle streaming response (SmithyMessageDecoderStream)
+      if (typeof response.completion === 'object' && typeof response.completion[Symbol.asyncIterator] === 'function') {
+        let resultText = '';
+        for await (const chunk of response.completion) {
+          if (chunk && chunk.chunk) {
+            resultText += chunk.chunk.toString();
+          }
+        }
+      return resultText || '[No content returned from stream]';
       result = response.completion;
     } else if (response && response.output && response.output.text) {
       console.log("Found response.output.text");
