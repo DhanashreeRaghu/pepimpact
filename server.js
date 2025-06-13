@@ -122,16 +122,12 @@ app.listen(PORT, () => {
 // Function to invoke AWS Bedrock Agent
 async function invokeBedRockAgent(prompt, history) {
   try {
-    // Check if AWS credentials and Bedrock Agent IDs are configured
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || 
-        !process.env.BEDROCK_AGENT_ID || !process.env.BEDROCK_AGENT_ALIAS_ID) {
-      console.log("Using fallback response (AWS credentials or Bedrock Agent IDs not configured)");
-      return fallbackResponse(prompt);
-    }
+    // Force use real agent instead of fallback
+    const useRealAgent = true;
     
-    // Get Bedrock Agent ID and Alias ID from environment variables
-    const agentId = process.env.BEDROCK_AGENT_ID;
-    const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID;
+    // Use Bedrock Agent ID and Alias ID from environment variables
+    const agentId = process.env.BEDROCK_AGENT_ID || "WYHH6PBYJQ";
+    const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID || "SYZPYK4YHY";
     
     console.log("Preparing Bedrock Agent request");
     
