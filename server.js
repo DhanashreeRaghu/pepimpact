@@ -79,7 +79,7 @@ app.post('/api/planner', async (req, res) => {
     
     // Call AWS Bedrock Agent
     const { result, rawResponse } = await invokeBedRockAgent(prompt, history);
-    
+    console.log('result', result);
     // Update session history with sanitized data
     const sanitizedPrompt = prompt.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     sessionHistory.unshift({ 
@@ -87,7 +87,7 @@ app.post('/api/planner', async (req, res) => {
       result, 
       timestamp: new Date().toISOString() 
     });
-    
+    console.log('Sanitized prompt');
     // Keep history manageable
     if (sessionHistory.length > 50) {
       sessionHistory = sessionHistory.slice(0, 50);
@@ -97,7 +97,7 @@ app.post('/api/planner', async (req, res) => {
     if (debug) {
       return res.json({ result, rawResponse });
     }
-    
+    console.log('returning response');
     res.json({ result });
     
   } catch (error) {
