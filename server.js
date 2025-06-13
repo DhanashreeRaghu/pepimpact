@@ -153,17 +153,20 @@ async function invokeBedRockAgent(prompt, history) {
     
     // Invoke the Bedrock Agent
     const response = await bedrockAgentClient.send(command);
-    
+    console.log(response);
     console.log("Response received from Bedrock Agent");
     
     // Extract and return the response
     if (response && response.completion) {
+      console.log("Inside response.completion");
       return response.completion;
     } else if (response && response.output && response.output.text) {
       // Handle the response format for newer versions of the SDK
+      console.log("Inside response.output");
       return response.output.text;
     } else if (response && response.text) {
       // Alternative response format
+      console.log("Inside response.text");
       return response.text;
     } else {
       console.log("Unexpected response format:", JSON.stringify(response, null, 2));
