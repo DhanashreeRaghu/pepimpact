@@ -180,31 +180,6 @@ button:hover {
     margin-top: 4px;
 }
 
-.confirmation-area {
-    padding: 10px;
-    background-color: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    text-align: center;
-}
-
-.confirm-button {
-    background-color: #28a745;
-    margin-right: 10px;
-}
-
-.confirm-button:hover {
-    background-color: #218838;
-}
-
-.cancel-button {
-    background-color: #dc3545;
-}
-
-.cancel-button:hover {
-    background-color: #c82333;
-}
-
 .placeholder {
     color: #999;
     font-style: italic;
