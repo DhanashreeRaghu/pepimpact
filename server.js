@@ -125,6 +125,11 @@ async function invokeBedRockAgent(prompt, history) {
     // Force use real agent instead of fallback
     const useRealAgent = true;
     
+    if (!useRealAgent) {
+      console.log("Using fallback response (AWS credentials not configured)");
+      return fallbackResponse(prompt);
+    }
+    
     // Use Bedrock Agent ID and Alias ID from environment variables
     const agentId = process.env.BEDROCK_AGENT_ID || "WYHH6PBYJQ";
     const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID || "SYZPYK4YHY";
