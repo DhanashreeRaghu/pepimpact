@@ -195,23 +195,37 @@ async function invokeBedRockAgent(prompt, history) {
     const response = await bedrockAgentClient.send(command);
     console.log("Response received from Bedrock Agent");
     
-    // Store the raw response for debugging
-    const rawResponse = JSON.parse(JSON.stringify(response));
+    // Store a simplified raw response for debugging
+    const rawResponse = {
+      contentType: response.contentType,
+      sessionId: response.sessionId,
+      hasCompletion: !!response.completion,
+      metadata: response.$metadata
+    };
     
     let result;
     // Extract the response based on its structure
     if (response && response.completion) {
       console.log("Found response.completion");
-       // Handle streaming response (SmithyMessageDecoderStream)
+      // Handle streaming response (SmithyMessageDecoderStream)
       if (typeof response.completion === 'object' && typeof response.completion[Symbol.asyncIterator] === 'function') {
-        let resultText = '';
-        for await (const chunk of response.completion) {
-          if (chunk && chunk.chunk) {
-            resultText += chunk.chunk.toString();
+        try {
+          let resultText = '';
+          for await (const chunk of response.completion) {
+            if (chunk && chunk.chunk && chunk.chunk.bytes) {
+              resultText += new TextDecoder().decode(chunk.chunk.bytes);
+            } else if (chunk && chunk.chunk) {
+              resultText += chunk.chunk.toString();
+            }
           }
+          result = resultText || '[No content returned from stream]';
+        } catch (streamError) {
+          console.error("Error processing stream:", streamError);
+          result = '[Error processing stream response]';
         }
-      return resultText || '[No content returned from stream]';
-      result = response.completion;
+      } else {
+        result = response.completion;
+      }
     } else if (response && response.output && response.output.text) {
       console.log("Found response.output.text");
       result = response.output.text;
