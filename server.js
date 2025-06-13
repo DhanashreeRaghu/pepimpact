@@ -157,10 +157,17 @@ async function invokeBedRockAgent(prompt, history) {
     console.log("Response received from Bedrock Agent");
     
     // Extract and return the response
-    if (response.completion) {
+    if (response && response.completion) {
       return response.completion;
+    } else if (response && response.output && response.output.text) {
+      // Handle the response format for newer versions of the SDK
+      return response.output.text;
+    } else if (response && response.text) {
+      // Alternative response format
+      return response.text;
     } else {
-      throw new Error('No completion in response');
+      console.log("Unexpected response format:", JSON.stringify(response, null, 2));
+      throw new Error('No recognizable completion in response');
     }
   } catch (error) {
     console.error('Error invoking Bedrock Agent:', error);
