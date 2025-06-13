@@ -6,15 +6,14 @@
 }
 
 body {
-    background-color: #0065c3;
-    background-image: url('images/pepsico-bg.svg');
+    background-image: url('images/pepsico-bg.svg'), linear-gradient(135deg, #0065c3 0%, #004b93 100%);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     padding: 20px;
     height: 100vh;
-    color: white;
+    color: #333;
 }
 
 .main-container {
@@ -27,39 +26,45 @@ body {
 
 .content-container {
     flex: 1;
-    background-color: transparent;
-    background-image: url('images/pepsico-logo-watermark.png');
+    background-color: rgba(255, 255, 255, 0.9);
     background-size: 50%;
     background-position: center;
     background-repeat: no-repeat;
     background-blend-mode: overlay;
     padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
+    backdrop-filter: blur(5px);
 }
 
 .history-section {
     width: 250px;
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, 0.9);
     padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
 }
 
 .logo-container {
+    text-align: center;
     margin-bottom: 20px;
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
 }
 
 .logo-container::after {
     content: '';
     position: absolute;
     bottom: -10px;
-    right: 0;
-    width: 70%;
+    left: 25%;
+    width: 50%;
     height: 3px;
-    background: linear-gradient(90deg, transparent, #0065c3, #0065c3);
+    background: linear-gradient(90deg, transparent, #0065c3, transparent);
 }
 
 .pepsico-logo {
@@ -69,7 +74,7 @@ body {
 
 .business-icons {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     margin-top: 10px;
     gap: 15px;
 }
@@ -79,7 +84,7 @@ body {
 }
 
 h1 {
-    text-align: right;
+    text-align: center;
     margin-bottom: 20px;
     color: #0065c3;
     font-weight: bold;
@@ -103,21 +108,25 @@ h2 {
 
 .conversation-section {
     flex: 1;
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, 0.8);
     padding: 15px;
+    border-radius: 12px;
     margin-bottom: 15px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .conversation-box {
     flex: 1;
-    background-color: transparent;
+    background-color: rgba(249, 249, 249, 0.9);
+    border: 1px solid #ddd;
     border-radius: 20px;
     padding: 15px;
     overflow-y: auto;
     margin-bottom: 10px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .input-section {
@@ -177,10 +186,12 @@ button:hover {
 
 .history-box {
     height: calc(100vh - 120px);
-    background-color: transparent;
+    background-color: rgba(249, 249, 249, 0.9);
+    border: 1px solid #ddd;
     border-radius: 20px;
     padding: 15px;
     overflow-y: auto;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .history-item {
