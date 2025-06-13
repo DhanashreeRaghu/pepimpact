@@ -108,6 +108,7 @@ button:hover {
     padding: 10px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
+    margin-bottom: 8px;
 }
 
 .history-item:hover {
@@ -121,6 +122,38 @@ button:hover {
 .history-item .timestamp {
     font-size: 12px;
     color: #888;
+}
+
+/* Chat message styling */
+.chat-message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 85%;
+    position: relative;
+}
+
+.user-message {
+    background-color: #e1f5fe;
+    margin-left: auto;
+    border-top-right-radius: 0;
+}
+
+.agent-message {
+    background-color: #f5f5f5;
+    margin-right: auto;
+    border-top-left-radius: 0;
+}
+
+.message-group {
+    margin-bottom: 20px;
+}
+
+.message-timestamp {
+    font-size: 11px;
+    color: #888;
+    text-align: right;
+    margin-top: 4px;
 }
 
 .placeholder {
