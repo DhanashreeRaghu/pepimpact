@@ -151,6 +151,11 @@ textarea {
     transition: all 0.3s;
 }
 
+textarea.drag-over {
+    border: 2px dashed #0065c3;
+    background-color: rgba(0, 101, 195, 0.05);
+}
+
 textarea:focus {
     outline: none;
     border-color: #0065c3;
@@ -198,14 +203,20 @@ button:hover {
 .history-item {
     padding: 12px;
     border-bottom: 1px solid #eee;
-    cursor: pointer;
+    cursor: grab;
     margin-bottom: 8px;
     border-radius: 6px;
     transition: background-color 0.2s;
+    user-select: none;
 }
 
 .history-item:hover {
     background-color: #f0f0f0;
+}
+
+.history-item:active {
+    cursor: grabbing;
+    background-color: #e0e0e0;
 }
 
 .history-item .prompt {

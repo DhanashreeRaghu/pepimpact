@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Setup drag and drop for textarea
+    setupDragAndDrop();
+    
     // Handle form submission
     async function handleSubmit() {
         const prompt = promptInput.value.trim();
@@ -91,6 +94,39 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             addMessageToConversation(`Error: ${error.message}`, 'bot error');
         }
+    }
+    
+    // Setup drag and drop functionality
+    function setupDragAndDrop() {
+        // Add drag and drop events to textarea
+        promptInput.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        });
+        
+        promptInput.addEventListener('dragleave', function() {
+            this.classList.remove('drag-over');
+        });
+        
+        promptInput.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            // Get the text data from the drag event
+            const text = e.dataTransfer.getData('text/plain');
+            if (text) {
+                // Insert the text at the cursor position or append to existing text
+                if (this.selectionStart || this.selectionStart === 0) {
+                    const startPos = this.selectionStart;
+                    const endPos = this.selectionEnd;
+                    this.value = this.value.substring(0, startPos) + text + this.value.substring(endPos);
+                    this.selectionStart = this.selectionEnd = startPos + text.length;
+                } else {
+                    this.value += text;
+                }
+                this.focus();
+            }
+        });
     }
     
     // Function to add a message to the conversation
@@ -179,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         history.forEach((item, index) => {
             historyHTML += `
-                <div class="history-item" data-index="${index}">
+                <div class="history-item" data-index="${index}" draggable="true">
                     <div class="prompt">${truncateText(sanitizeOutput(item.prompt), 50)}</div>
                     <div class="timestamp">${formatDate(item.timestamp)}</div>
                 </div>
@@ -188,8 +224,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         promptHistory.innerHTML = historyHTML;
         
-        // Add click event to history items
+        // Add events to history items
         document.querySelectorAll('.history-item').forEach(item => {
+            // Click event
             item.addEventListener('click', function() {
                 const index = this.getAttribute('data-index');
                 const historyItem = getHistory()[index];
@@ -203,6 +240,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Set the input value
                 promptInput.value = '';
+            });
+            
+            // Drag start event
+            item.addEventListener('dragstart', function(e) {
+                const index = this.getAttribute('data-index');
+                const historyItem = getHistory()[index];
+                e.dataTransfer.setData('text/plain', historyItem.prompt);
+                e.dataTransfer.effectAllowed = 'copy';
             });
         });
     }
@@ -258,14 +303,13 @@ document.addEventListener('DOMContentLoaded', function() {
         let formatted = response.replace(/\n{3,}/g, '\n\n');
         
         // Format numbered lists for better readability
-        formatted = formatted.replace(/(\d+\.\s+.*?)(?=\n\d+\.|$)/gs, '<li>$1</li>');
-        formatted = formatted.replace(/(<li>\d+\.\s+.*?<\/li>)+/gs, '<ol class="response-list">$&</ol>');
+        formatted = formatted.replace(/(\d+\.\s+)(.*?)(?=\n\d+\.|$)/gs, '<li>$2</li>');
+        formatted = formatted.replace(/(<li>.*?<\/li>)+/gs, '<ol class="response-list">$&</ol>');
         
         // Format bullet point lists
-        formatted = formatted.replace(/(-\s+.*?)(?=\n-\s+|$)/gs, '<li>$1</li>');
-        formatted = formatted.replace(/(\*\s+.*?)(?=\n\*\s+|$)/gs, '<li>$1</li>');
-        formatted = formatted.replace(/(<li>-\s+.*?<\/li>)+/gs, '<ul class="response-list">$&</ul>');
-        formatted = formatted.replace(/(<li>\*\s+.*?<\/li>)+/gs, '<ul class="response-list">$&</ul>');
+        formatted = formatted.replace(/(-\s+)(.*?)(?=\n-\s+|$)/gs, '<li>$2</li>');
+        formatted = formatted.replace(/(\*\s+)(.*?)(?=\n\*\s+|$)/gs, '<li>$2</li>');
+        formatted = formatted.replace(/(<li>.*?<\/li>)+/gs, '<ul class="response-list">$&</ul>');
         
         // Format code blocks
         formatted = formatted.replace(/```([^`]+)```/g, '<pre class="code-block">$1</pre>');
