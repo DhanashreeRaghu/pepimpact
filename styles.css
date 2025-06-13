@@ -7,9 +7,10 @@
 
 body {
     background-color: #0065c3;
-    background-image: url('images/pepsico-bg.svg'), linear-gradient(135deg, #0065c3 0%, #004b93 100%);
-    background-size: cover;
-    background-position: center;
+    background-image: url('https://www.pepsico.com/images/default-source/products-brands/pepsi_12oz.png'), linear-gradient(135deg, #0065c3 0%, #004b93 100%);
+    background-size: contain, cover;
+    background-position: right bottom, center;
+    background-repeat: no-repeat;
     background-attachment: fixed;
     padding: 20px;
     height: 100vh;

@@ -81,8 +81,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             
-            // Display result
-            addMessageToConversation(data.result, 'bot');
+            // Format and shorten the response before displaying
+            const formattedResult = formatBedrockResponse(data.result);
+            addMessageToConversation(formattedResult, 'bot');
             
             // Save to history
             saveToHistory(prompt, data.result);
@@ -104,8 +105,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageElement = document.createElement('div');
         messageElement.className = `message ${type}-message`;
         
-        // Add message content
-        messageElement.innerHTML = sanitizeOutput(message);
+        // For bot messages, use innerHTML to render formatted content
+        // For user messages, use sanitized text
+        if (type === 'bot') {
+            messageElement.innerHTML = message; // Already formatted and sanitized
+        } else {
+            messageElement.innerHTML = sanitizeOutput(message);
+        }
         
         // Add timestamp
         const timeElement = document.createElement('div');
@@ -242,5 +248,42 @@ document.addEventListener('DOMContentLoaded', function() {
         // In a real app, this would come from the server
         return Math.random().toString(36).substring(2, 15) + 
                Math.random().toString(36).substring(2, 15);
+    }
+    
+    // Format and shorten Bedrock responses
+    function formatBedrockResponse(response) {
+        if (!response) return '';
+        
+        // Remove excessive newlines (replace 3+ newlines with 2)
+        let formatted = response.replace(/\n{3,}/g, '\n\n');
+        
+        // Format lists for better readability
+        formatted = formatted.replace(/(\d+\.\s+.*?)(?=\n\d+\.|$)/gs, '<div class="list-item">$1</div>');
+        
+        // Format code blocks
+        formatted = formatted.replace(/```([^`]+)```/g, '<pre class="code-block">$1</pre>');
+        
+        // Format headings
+        formatted = formatted.replace(/^(#+)\s+(.*?)$/gm, (match, hashes, text) => {
+            const level = Math.min(hashes.length + 3, 6); // h4, h5, h6
+            return `<h${level}>${text}</h${level}>`;
+        });
+        
+        // Format bold text
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // Format italic text
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        // Convert URLs to links
+        formatted = formatted.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+        
+        // Preserve paragraph breaks
+        formatted = '<p>' + formatted.replace(/\n\n/g, '</p><p>') + '</p>';
+        
+        // Clean up any empty paragraphs
+        formatted = formatted.replace(/<p>\s*<\/p>/g, '');
+        
+        return formatted;
     }
 });
