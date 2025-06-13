@@ -6,10 +6,10 @@
 }
 
 body {
-    background-color: #add8e6;
-    background-image: url('https://www.pepsico.com/images/default-source/products-brands/pepsi_12oz.png'), linear-gradient(135deg, #add8e6 0%, #87ceeb 100%);
-    background-size: contain, cover;
-    background-position: right bottom, center;
+    background-color: #0065c3;
+    background-image: url('https://www.pepsico.com/images/default-source/album-images/brands/pepsi_brand_design.jpg'), linear-gradient(135deg, #0065c3 0%, #004b93 100%);
+    background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     padding: 20px;
@@ -228,6 +228,55 @@ button:hover {
     position: relative;
     clear: both;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    line-height: 1.5;
+}
+
+.message ul, .message ol {
+    padding-left: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.message li {
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
+
+.response-list {
+    margin-left: 5px;
+    padding-left: 20px;
+}
+
+.response-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+
+.response-table td, .response-table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.message p {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.message h4, .message h5, .message h6 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #0065c3;
+}
+
+.message pre {
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 10px 0;
+    border-left: 3px solid #0065c3;
 }
 
 .user-message {

@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const history = getHistory();
         
         if (history.length === 0) {
-            promptHistory.innerHTML = '<p class="placeholder">Your history will appear here...</p>';
+            promptHistory.innerHTML = '<p class="placeholder">Your history will appear here... 📚</p>';
             return;
         }
         
@@ -257,8 +257,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Remove excessive newlines (replace 3+ newlines with 2)
         let formatted = response.replace(/\n{3,}/g, '\n\n');
         
-        // Format lists for better readability
-        formatted = formatted.replace(/(\d+\.\s+.*?)(?=\n\d+\.|$)/gs, '<div class="list-item">$1</div>');
+        // Format numbered lists for better readability
+        formatted = formatted.replace(/(\d+\.\s+.*?)(?=\n\d+\.|$)/gs, '<li>$1</li>');
+        formatted = formatted.replace(/(<li>\d+\.\s+.*?<\/li>)+/gs, '<ol class="response-list">$&</ol>');
+        
+        // Format bullet point lists
+        formatted = formatted.replace(/(-\s+.*?)(?=\n-\s+|$)/gs, '<li>$1</li>');
+        formatted = formatted.replace(/(\*\s+.*?)(?=\n\*\s+|$)/gs, '<li>$1</li>');
+        formatted = formatted.replace(/(<li>-\s+.*?<\/li>)+/gs, '<ul class="response-list">$&</ul>');
+        formatted = formatted.replace(/(<li>\*\s+.*?<\/li>)+/gs, '<ul class="response-list">$&</ul>');
         
         // Format code blocks
         formatted = formatted.replace(/```([^`]+)```/g, '<pre class="code-block">$1</pre>');
@@ -277,6 +284,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Convert URLs to links
         formatted = formatted.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+        
+        // Format tables if present
+        formatted = formatted.replace(/\|(.+)\|/g, '<tr><td>$1</td></tr>').replace(/<tr><td>(.+?)<\/td><\/tr>/g, function(match, content) {
+            return '<tr><td>' + content.replace(/\|/g, '</td><td>') + '</td></tr>';
+        });
+        formatted = formatted.replace(/(<tr>.+?<\/tr>)+/g, '<table class="response-table">$&</table>');
         
         // Preserve paragraph breaks
         formatted = '<p>' + formatted.replace(/\n\n/g, '</p><p>') + '</p>';
