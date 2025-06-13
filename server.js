@@ -13,18 +13,46 @@ const { BedrockAgentRuntimeClient, InvokeAgentCommand } = require('@aws-sdk/clie
 // Load environment variables
 dotenv.config();
 
-// Initialize AWS Bedrock Agent client
+// Hardcoded AWS credentials and agent IDs
+const AWS_REGION = 'us-east-1';
+const AWS_ACCESS_KEY_ID = 'ASIAQQDCXM7VQU36M2XP'; // Hardcoded
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY; // Only from Codespace secret
+const AWS_SESSION_TOKEN = process.env.AWS_SESSION_TOKEN; // Now required for temp credentials
+const BEDROCK_AGENT_ID = 'WYHH6PBYJQ';
+const BEDROCK_AGENT_ALIAS_ID = 'SYZPYK4YHY';
+
+// Initialize AWS Bedrock Agent client with mixed credentials
+const credentials = {
+  accessKeyId: AWS_ACCESS_KEY_ID,
+  secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  sessionToken: AWS_SESSION_TOKEN // Always set, required for temp credentials
+};
 const bedrockAgentClient = new BedrockAgentRuntimeClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    sessionToken: process.env.AWS_SESSION_TOKEN // Include session token if using temporary credentials
-  }
+  region: AWS_REGION,
+  credentials
 });
+
+// Remove env var credential check
+function isValidAWSCredentials() {
+  if (
+    !AWS_ACCESS_KEY_ID ||
+    !AWS_SECRET_ACCESS_KEY ||
+    !AWS_SESSION_TOKEN || // Require session token for temp credentials
+    AWS_ACCESS_KEY_ID === 'YOUR_ACCESS_KEY_ID'
+  ) {
+    return false;
+  }
+  return true;
+}
+const hasAWSCredentials = isValidAWSCredentials();
+
+if (!hasAWSCredentials) {
+  console.warn('Warning: AWS credentials are not properly configured. The app will use fallback responses.');
+}
 
 const app = express();
 app.set('trust proxy', 1); // <-- Add this line
+
 const PORT = process.env.PORT || 3000;
 
 // Security middleware
@@ -122,18 +150,15 @@ app.listen(PORT, () => {
 // Function to invoke AWS Bedrock Agent
 async function invokeBedRockAgent(prompt, history) {
   try {
-    // Force use real agent instead of fallback
-    const useRealAgent = true;
-    
-    if (!useRealAgent) {
-      console.log("Using fallback response (AWS credentials not configured)");
+    // Use hardcoded agent IDs
+    const agentId = BEDROCK_AGENT_ID;
+    const agentAliasId = BEDROCK_AGENT_ALIAS_ID;
+
+    if (!hasAWSCredentials) {
+      console.log("Using fallback response (AWS credentials not configured or invalid)");
       return fallbackResponse(prompt);
     }
-    
-    // Use Bedrock Agent ID and Alias ID from environment variables
-    const agentId = process.env.BEDROCK_AGENT_ID || "WYHH6PBYJQ";
-    const agentAliasId = process.env.BEDROCK_AGENT_ALIAS_ID || "SYZPYK4YHY";
-    
+
     console.log("Preparing Bedrock Agent request");
     
     // Prepare the input for the Bedrock Agent
@@ -162,6 +187,9 @@ async function invokeBedRockAgent(prompt, history) {
     }
   } catch (error) {
     console.error('Error invoking Bedrock Agent:', error);
+    if (!hasAWSCredentials) {
+      console.log("Using fallback response (AWS credentials not configured)");
+    }
     return fallbackResponse(prompt);
   }
 }
@@ -170,6 +198,13 @@ async function invokeBedRockAgent(prompt, history) {
 function fallbackResponse(prompt) {
   if (prompt.toLowerCase().includes('plan')) {
     return `Here's a plan based on your request:\n\n1. Analyze requirements\n2. Design solution\n3. Implement core functionality\n4. Test and validate\n5. Deploy to production`;
+  } else if (prompt.toLowerCase().includes('help')) {
+    return `I can help you plan and organize tasks. Try asking me to create a plan for a specific project or goal.`;
+  } else {
+    return `I received your prompt: "${prompt}"\n\nThis is a fallback response as the Bedrock Agent is currently unavailable. Please check your configuration or try again later.`;
+  }
+}
+}
   } else if (prompt.toLowerCase().includes('help')) {
     return `I can help you plan and organize tasks. Try asking me to create a plan for a specific project or goal.`;
   } else {
