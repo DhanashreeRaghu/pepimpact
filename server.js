@@ -80,6 +80,7 @@ app.post('/api/planner', async (req, res) => {
     // Call AWS Bedrock Agent
     const { result, rawResponse } = await invokeBedRockAgent(prompt, history);
     console.log('result', result);
+    console.log('result', rawResponse);
     // Update session history with sanitized data
     const sanitizedPrompt = prompt.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     sessionHistory.unshift({ 
