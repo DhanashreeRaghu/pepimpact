@@ -25,7 +25,6 @@ body {
 
 .content-container {
     flex: 1;
-    background-color: rgba(255, 255, 255, 0.7);
     background-image: url('images/wp2854344.jpg');
     background-size: 50%;
     background-position: center;
