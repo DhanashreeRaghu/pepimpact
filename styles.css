@@ -12,6 +12,7 @@ body {
     background-position: center;
     background-attachment: fixed;
     padding: 20px;
+    height: 100vh;
 }
 
 .main-container {
@@ -19,6 +20,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     gap: 20px;
+    height: calc(100vh - 40px);
 }
 
 .content-container {
@@ -30,6 +32,8 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
 }
 
 .history-section {
@@ -59,20 +63,49 @@ h2 {
     color: #004b93;
 }
 
-.prompt-section, .result-section {
-    margin-bottom: 20px;
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+}
+
+.conversation-section {
+    flex: 1;
     background-color: rgba(255, 255, 255, 0.8);
     padding: 15px;
     border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.conversation-box {
+    flex: 1;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.input-section {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    gap: 10px;
 }
 
 textarea {
-    width: 100%;
-    height: 100px;
+    flex: 1;
+    height: 60px;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    resize: vertical;
+    resize: none;
 }
 
 button {
@@ -82,26 +115,21 @@ button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-top: 10px;
     font-size: 16px;
+    align-self: flex-end;
 }
 
 button:hover {
     background-color: #004b93;
 }
 
-.result-box, .history-box {
+.history-box {
+    height: calc(100vh - 120px);
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 15px;
-    min-height: 100px;
-    max-height: 300px;
     overflow-y: auto;
-}
-
-.history-box {
-    height: calc(100vh - 120px);
 }
 
 .history-item {
@@ -124,36 +152,57 @@ button:hover {
     color: #888;
 }
 
-/* Chat message styling */
-.chat-message {
+.message {
     margin-bottom: 15px;
+    max-width: 80%;
     padding: 10px;
     border-radius: 8px;
-    max-width: 85%;
     position: relative;
+    clear: both;
 }
 
 .user-message {
     background-color: #e1f5fe;
-    margin-left: auto;
+    float: right;
     border-top-right-radius: 0;
 }
 
-.agent-message {
-    background-color: #f5f5f5;
-    margin-right: auto;
+.bot-message {
+    background-color: #f0f0f0;
+    float: left;
     border-top-left-radius: 0;
 }
 
-.message-group {
-    margin-bottom: 20px;
-}
-
-.message-timestamp {
+.message-time {
     font-size: 11px;
     color: #888;
     text-align: right;
     margin-top: 4px;
+}
+
+.confirmation-area {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.confirm-button {
+    background-color: #28a745;
+    margin-right: 10px;
+}
+
+.confirm-button:hover {
+    background-color: #218838;
+}
+
+.cancel-button {
+    background-color: #dc3545;
+}
+
+.cancel-button:hover {
+    background-color: #c82333;
 }
 
 .placeholder {

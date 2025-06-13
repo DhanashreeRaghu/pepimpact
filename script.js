@@ -4,66 +4,183 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.getElementById('submitPrompt');
     const promptResult = document.getElementById('promptResult');
     const promptHistory = document.getElementById('promptHistory');
+    const confirmationArea = document.getElementById('confirmationArea');
+    const confirmButton = document.getElementById('confirmAction');
+    const cancelButton = document.getElementById('cancelAction');
+    
+    // Store the current prompt and response for confirmation
+    let currentPrompt = '';
+    let pendingAction = null;
     
     // Load history from localStorage
     loadHistory();
     
     // Event listener for submit button
-    submitButton.addEventListener('click', async function() {
+    submitButton.addEventListener('click', handleSubmit);
+    
+    // Event listener for Enter key in textarea
+    promptInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+        }
+    });
+    
+    // Handle form submission
+    async function handleSubmit() {
         const prompt = promptInput.value.trim();
         
         if (!prompt) {
-            alert('Please enter a prompt');
             return;
         }
         
         // Basic input validation
         if (prompt.length > 1000) {
-            alert('Prompt is too long (maximum 1000 characters)');
+            alert('Message is too long (maximum 1000 characters)');
             return;
         }
         
-        // Show loading state
-        promptResult.innerHTML = '<div class="loading">Processing your request...</div>';
+        // Add user message to the conversation
+        addMessageToConversation(prompt, 'user');
+        
+        // Clear input
+        promptInput.value = '';
         
         try {
             // Generate CSRF token (in a real app, this would be from the server)
             const csrfToken = generateCSRFToken();
             
-            // Send prompt to backend API
-            const response = await fetch('/api/planner', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                },
-                credentials: 'same-origin', // Include cookies
-                body: JSON.stringify({ 
-                    prompt: sanitizeInput(prompt), 
-                    history: getHistory() 
-                })
-            });
+            // Store the current prompt for confirmation
+            currentPrompt = prompt;
             
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to get response from server');
+            // Check if the prompt requires confirmation
+            if (requiresConfirmation(prompt)) {
+                // Show the confirmation area
+                addMessageToConversation('You\'re about to perform an action that requires confirmation. Please confirm to proceed.', 'bot');
+                confirmationArea.style.display = 'block';
+                
+                // Set up the pending action
+                pendingAction = async () => {
+                    await sendPromptToBedrock(prompt, csrfToken);
+                };
+                
+                return;
             }
             
-            const data = await response.json();
-            
-            // Display result in chat format
-            displayChatMessage(prompt, data.result);
-            
-            // Save to history
-            saveToHistory(prompt, data.result);
-            
-            // Clear input
-            promptInput.value = '';
+            // If no confirmation needed, proceed directly
+            await sendPromptToBedrock(prompt, csrfToken);
             
         } catch (error) {
-            promptResult.innerHTML = `<div class="error">Error: ${sanitizeOutput(error.message)}</div>`;
+            addMessageToConversation(`Error: ${error.message}`, 'bot error');
+            confirmationArea.style.display = 'none';
+        }
+    }
+    
+    // Event listener for confirm button
+    confirmButton.addEventListener('click', async function() {
+        if (pendingAction) {
+            confirmationArea.style.display = 'none';
+            addMessageToConversation('Processing your request...', 'bot loading');
+            
+            try {
+                await pendingAction();
+                pendingAction = null;
+            } catch (error) {
+                addMessageToConversation(`Error: ${error.message}`, 'bot error');
+            }
         }
     });
+    
+    // Event listener for cancel button
+    cancelButton.addEventListener('click', function() {
+        confirmationArea.style.display = 'none';
+        addMessageToConversation('Action cancelled.', 'bot');
+        pendingAction = null;
+    });
+    
+    // Function to add a message to the conversation
+    function addMessageToConversation(message, type) {
+        // Remove placeholder if present
+        const placeholder = promptResult.querySelector('.placeholder');
+        if (placeholder) {
+            promptResult.removeChild(placeholder);
+        }
+        
+        // Create message element
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${type}-message`;
+        
+        // Add message content
+        messageElement.innerHTML = sanitizeOutput(message);
+        
+        // Add timestamp
+        const timeElement = document.createElement('div');
+        timeElement.className = 'message-time';
+        timeElement.textContent = new Date().toLocaleTimeString();
+        messageElement.appendChild(timeElement);
+        
+        // Add to conversation
+        promptResult.appendChild(messageElement);
+        
+        // Scroll to bottom
+        promptResult.scrollTop = promptResult.scrollHeight;
+    }
+    
+    // Function to send prompt to Bedrock
+    async function sendPromptToBedrock(prompt, csrfToken) {
+        // Add loading message
+        const loadingId = Date.now();
+        addMessageToConversation('Processing your request...', 'bot loading');
+        
+        // Send prompt to backend API
+        const response = await fetch('/api/planner', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken
+            },
+            credentials: 'same-origin', // Include cookies
+            body: JSON.stringify({ 
+                prompt: sanitizeInput(prompt), 
+                history: getHistory() 
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to get response from server');
+        }
+        
+        const data = await response.json();
+        
+        // Remove loading message
+        const loadingMessages = promptResult.querySelectorAll('.loading');
+        if (loadingMessages.length > 0) {
+            promptResult.removeChild(loadingMessages[loadingMessages.length - 1].parentNode);
+        }
+        
+        // Display result
+        addMessageToConversation(data.result, 'bot');
+        confirmationArea.style.display = 'none';
+        
+        // Save to history
+        saveToHistory(prompt, data.result);
+    }
+    
+    // Function to check if a prompt requires confirmation
+    function requiresConfirmation(prompt) {
+        const lowercasePrompt = prompt.toLowerCase();
+        
+        // Keywords that might indicate actions requiring confirmation
+        const actionKeywords = [
+            'delete', 'remove', 'drop', 'terminate', 'stop', 'shutdown',
+            'create', 'launch', 'start', 'deploy', 'provision', 'execute',
+            'update', 'modify', 'change', 'configure'
+        ];
+        
+        // Check if any action keywords are present
+        return actionKeywords.some(keyword => lowercasePrompt.includes(keyword));
+    }
     
     // Function to save prompt and result to history
     function saveToHistory(prompt, result) {
@@ -133,9 +250,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const index = this.getAttribute('data-index');
                 const historyItem = getHistory()[index];
                 
-                // Display the selected history item in chat format
-                promptInput.value = historyItem.prompt;
-                displayChatMessage(historyItem.prompt, historyItem.result);
+                // Clear the conversation
+                promptResult.innerHTML = '';
+                
+                // Display the conversation from history
+                addMessageToConversation(historyItem.prompt, 'user');
+                addMessageToConversation(historyItem.result, 'bot');
+                
+                // Set the input value
+                promptInput.value = '';
+                confirmationArea.style.display = 'none';
             });
         });
     }
@@ -176,98 +300,5 @@ document.addEventListener('DOMContentLoaded', function() {
         // In a real app, this would come from the server
         return Math.random().toString(36).substring(2, 15) + 
                Math.random().toString(36).substring(2, 15);
-    }
-    
-    // Function to display chat messages in a consolidated format
-    function displayChatMessage(userPrompt, agentResponse) {
-        // Clear placeholder if present
-        if (promptResult.querySelector('.placeholder')) {
-            promptResult.innerHTML = '';
-        }
-        
-        // Create a new message group
-        const messageGroup = document.createElement('div');
-        messageGroup.className = 'message-group';
-        
-        // Create user message
-        const userMessage = document.createElement('div');
-        userMessage.className = 'chat-message user-message';
-        userMessage.innerHTML = sanitizeOutput(userPrompt);
-        
-        // Create agent message
-        const agentMessage = document.createElement('div');
-        agentMessage.className = 'chat-message agent-message';
-        agentMessage.innerHTML = sanitizeOutput(agentResponse);
-        
-        // Create timestamp
-        const timestamp = document.createElement('div');
-        timestamp.className = 'message-timestamp';
-        timestamp.textContent = new Date().toLocaleTimeString();
-        
-        // Add messages to the group
-        messageGroup.appendChild(userMessage);
-        messageGroup.appendChild(agentMessage);
-        messageGroup.appendChild(timestamp);
-        
-        // Add the message group to the result box
-        promptResult.prepend(messageGroup);
-        
-        // Check if there are similar context messages to consolidate
-        consolidateSimilarMessages();
-    }
-    
-    // Function to consolidate similar context messages
-    function consolidateSimilarMessages() {
-        const messageGroups = promptResult.querySelectorAll('.message-group');
-        
-        // Skip if there are less than 2 message groups
-        if (messageGroups.length < 2) return;
-        
-        // Get the latest user message text
-        const latestUserMessage = messageGroups[0].querySelector('.user-message').textContent;
-        
-        // Check for similar messages in previous groups
-        for (let i = 1; i < messageGroups.length; i++) {
-            const currentUserMessage = messageGroups[i].querySelector('.user-message').textContent;
-            
-            // If messages are similar (simple check - can be improved)
-            if (areSimilarContexts(latestUserMessage, currentUserMessage)) {
-                // Add a visual indicator to show they're related
-                messageGroups[i].style.opacity = '0.7';
-                messageGroups[i].style.borderLeft = '3px solid #0065c3';
-                
-                // Add a note to the older message
-                const relatedNote = document.createElement('div');
-                relatedNote.className = 'related-note';
-                relatedNote.textContent = 'Related to newer message';
-                relatedNote.style.fontSize = '11px';
-                relatedNote.style.fontStyle = 'italic';
-                relatedNote.style.color = '#0065c3';
-                
-                messageGroups[i].appendChild(relatedNote);
-            }
-        }
-    }
-    
-    // Simple function to check if two messages have similar context
-    // This can be improved with more sophisticated text comparison
-    function areSimilarContexts(text1, text2) {
-        // Convert to lowercase for comparison
-        const t1 = text1.toLowerCase();
-        const t2 = text2.toLowerCase();
-        
-        // Check for significant word overlap
-        const words1 = t1.split(/\\s+/).filter(w => w.length > 3);
-        const words2 = t2.split(/\\s+/).filter(w => w.length > 3);
-        
-        let matchCount = 0;
-        for (const word of words1) {
-            if (words2.includes(word)) {
-                matchCount++;
-            }
-        }
-        
-        // If more than 30% of significant words match, consider them similar
-        return matchCount > 0 && (matchCount / Math.max(words1.length, words2.length)) > 0.3;
     }
 });

@@ -23,18 +23,21 @@
                 <h1>PEPImpact</h1>
             </div>
             
-            <div class="prompt-section">
-                <h2>Drop your cloud conundrum here</h2>
-                <textarea id="promptInput" placeholder="Enter your prompt here..." maxlength="1000" aria-label="Prompt input"></textarea>
-                <div class="controls">
-                    <button id="submitPrompt" aria-label="Submit prompt">Submit</button>
+            <div class="chat-container">
+                <div class="conversation-section">
+                    <h2>Conversation</h2>
+                    <div id="promptResult" class="conversation-box" aria-live="polite">
+                        <p class="placeholder">Your conversation will appear here...</p>
+                    </div>
+                    <div id="confirmationArea" class="confirmation-area" style="display: none;">
+                        <button id="confirmAction" class="confirm-button">Confirm Action</button>
+                        <button id="cancelAction" class="cancel-button">Cancel</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="result-section">
-                <h2>Conversation</h2>
-                <div id="promptResult" class="result-box" aria-live="polite">
-                    <p class="placeholder">Your conversation will appear here...</p>
+                
+                <div class="input-section">
+                    <textarea id="promptInput" placeholder="Type your message here..." maxlength="1000" aria-label="Message input"></textarea>
+                    <button id="submitPrompt" aria-label="Send message">Send</button>
                 </div>
             </div>
         </div>
