@@ -26,7 +26,7 @@ body {
 .content-container {
     flex: 1;
     background-color: rgba(255, 255, 255, 0.7);
-    background-image: url('images/pepsico-logo-watermark.png');
+    background-image: url('images/wp2854344.jpg');
     background-size: 50%;
     background-position: center;
     background-repeat: no-repeat;
@@ -86,7 +86,7 @@ body {
 
 h1 {
     text-align: right;
-    margin-bottom: 20px;
+    margin: 0;
     color: #0065c3;
     font-weight: bold;
     font-size: 32px;
