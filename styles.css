@@ -49,22 +49,22 @@ body {
 }
 
 .logo-container {
-    text-align: center;
+    text-align: right;
     margin-bottom: 20px;
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
 }
 
 .logo-container::after {
     content: '';
     position: absolute;
     bottom: -10px;
-    left: 25%;
-    width: 50%;
+    right: 0;
+    width: 70%;
     height: 3px;
-    background: linear-gradient(90deg, transparent, #0065c3, transparent);
+    background: linear-gradient(90deg, transparent, #0065c3, #0065c3);
 }
 
 .pepsico-logo {
@@ -84,7 +84,7 @@ body {
 }
 
 h1 {
-    text-align: center;
+    text-align: right;
     margin-bottom: 20px;
     color: #0065c3;
     font-weight: bold;
