@@ -203,13 +203,10 @@ async function invokeBedRockAgent(prompt, history, userId = null) {
     if (isConfirmation(prompt) && history && history.length > 0) {
       // Get the most recent exchange
       const lastExchange = history[0];
-      // Extract potential actions from the last response
-      const suggestedActions = extractSuggestedActions(lastExchange.result);
       
-      if (suggestedActions.length > 0) {
-        enhancedPrompt = `${prompt}. Yes, please proceed with the ${suggestedActions[0]} action you suggested.`;
-        console.log(`Enhanced confirmation prompt: "${enhancedPrompt}"`);
-      }
+      // Don't try to extract actions, just continue the conversation
+      enhancedPrompt = `${prompt}. I'd like to continue our conversation.`;
+      console.log(`Enhanced confirmation prompt: "${enhancedPrompt}"`);
     } else {
       enhancedPrompt = analyzePromptContext(prompt, history);
     }
@@ -331,6 +328,11 @@ function extractSuggestedActions(response) {
         suggestedActions.push(context);
       }
     }
+  }
+  
+  // Always return at least a default action if nothing specific was found
+  if (suggestedActions.length === 0) {
+    suggestedActions.push("continue our conversation");
   }
   
   return suggestedActions;
