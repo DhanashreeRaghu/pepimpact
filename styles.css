@@ -26,7 +26,7 @@ body {
 .content-container {
     flex: 1;
     background-image: url('images/wp2854344.jpg');
-    background-size: 50%;
+    background-size: 100%;
     background-position: center;
     background-repeat: no-repeat;
     background-blend-mode: overlay;
