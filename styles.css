@@ -6,14 +6,13 @@
 }
 
 body {
-    background-image: url('images/pepsico-bg.svg'), linear-gradient(135deg, #0065c3 0%, #004b93 100%);
+    background-image: url('images/pepsico-bg.svg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     padding: 20px;
-    height: 100vh;
-    color: #333;
+    height: 100vh;    
 }
 
 .main-container {
