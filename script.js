@@ -53,22 +53,55 @@ document.addEventListener('DOMContentLoaded', function() {
             // Store the current prompt for confirmation
             currentPrompt = prompt;
             
-            // Check if the prompt requires confirmation
-            if (requiresConfirmation(prompt)) {
-                // Show the confirmation area
-                addMessageToConversation('You\'re about to perform an action that requires confirmation. Please confirm to proceed.', 'bot');
+            // First, get a preliminary response to analyze
+            const prelimResponse = await fetch('/api/planner', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ 
+                    prompt: sanitizeInput(prompt), 
+                    history: getHistory() 
+                })
+            });
+            
+            if (!prelimResponse.ok) {
+                const errorData = await prelimResponse.json();
+                throw new Error(errorData.error || 'Failed to get response from server');
+            }
+            
+            const prelimData = await prelimResponse.json();
+            const responseText = prelimData.result;
+            
+            // Check if the response suggests an action that requires confirmation
+            if (responseRequiresConfirmation(responseText)) {
+                // Extract the action from the response
+                const action = extractActionFromResponse(responseText);
+                
+                // Show the response but ask for confirmation before proceeding
+                addMessageToConversation(responseText, 'bot');
+                addMessageToConversation(`Do you want to ${action}?`, 'bot confirmation');
                 confirmationArea.style.display = 'block';
                 
-                // Set up the pending action
+                // Set up the pending action - in this case, we're confirming the response
                 pendingAction = async () => {
-                    await sendPromptToBedrock(prompt, csrfToken);
+                    // The user confirmed, so we'll send a follow-up message
+                    await sendPromptToBedrock(`Yes, please ${action}`, csrfToken);
                 };
+                
+                // Save to history
+                saveToHistory(prompt, responseText);
                 
                 return;
             }
             
-            // If no confirmation needed, proceed directly
-            await sendPromptToBedrock(prompt, csrfToken);
+            // If no confirmation needed, just display the response
+            addMessageToConversation(prelimData.result, 'bot');
+            
+            // Save to history
+            saveToHistory(prompt, prelimData.result);
             
         } catch (error) {
             addMessageToConversation(`Error: ${error.message}`, 'bot error');
@@ -80,7 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmButton.addEventListener('click', async function() {
         if (pendingAction) {
             confirmationArea.style.display = 'none';
-            addMessageToConversation('Processing your request...', 'bot loading');
             
             try {
                 await pendingAction();
@@ -128,58 +160,105 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to send prompt to Bedrock
     async function sendPromptToBedrock(prompt, csrfToken) {
-        // Add loading message
-        const loadingId = Date.now();
-        addMessageToConversation('Processing your request...', 'bot loading');
+        // Add loading message element
+        const loadingElement = document.createElement('div');
+        loadingElement.className = 'message bot-message loading';
+        loadingElement.innerHTML = 'Processing your request...';
+        promptResult.appendChild(loadingElement);
+        promptResult.scrollTop = promptResult.scrollHeight;
         
-        // Send prompt to backend API
-        const response = await fetch('/api/planner', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken
-            },
-            credentials: 'same-origin', // Include cookies
-            body: JSON.stringify({ 
-                prompt: sanitizeInput(prompt), 
-                history: getHistory() 
-            })
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to get response from server');
+        try {
+            // Send prompt to backend API
+            const response = await fetch('/api/planner', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
+                credentials: 'same-origin', // Include cookies
+                body: JSON.stringify({ 
+                    prompt: sanitizeInput(prompt), 
+                    history: getHistory() 
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to get response from server');
+            }
+            
+            const data = await response.json();
+            
+            // Remove loading message
+            promptResult.removeChild(loadingElement);
+            
+            // Display result
+            addMessageToConversation(data.result, 'bot');
+            confirmationArea.style.display = 'none';
+            
+            // Save to history
+            saveToHistory(prompt, data.result);
+        } catch (error) {
+            // Remove loading message
+            promptResult.removeChild(loadingElement);
+            throw error;
         }
-        
-        const data = await response.json();
-        
-        // Remove loading message
-        const loadingMessages = promptResult.querySelectorAll('.loading');
-        if (loadingMessages.length > 0) {
-            promptResult.removeChild(loadingMessages[loadingMessages.length - 1].parentNode);
-        }
-        
-        // Display result
-        addMessageToConversation(data.result, 'bot');
-        confirmationArea.style.display = 'none';
-        
-        // Save to history
-        saveToHistory(prompt, data.result);
     }
     
-    // Function to check if a prompt requires confirmation
-    function requiresConfirmation(prompt) {
-        const lowercasePrompt = prompt.toLowerCase();
+    // Function to check if a response requires confirmation
+    function responseRequiresConfirmation(response) {
+        const lowercaseResponse = response.toLowerCase();
         
-        // Keywords that might indicate actions requiring confirmation
-        const actionKeywords = [
-            'delete', 'remove', 'drop', 'terminate', 'stop', 'shutdown',
-            'create', 'launch', 'start', 'deploy', 'provision', 'execute',
-            'update', 'modify', 'change', 'configure'
+        // Phrases that suggest the response is asking for confirmation
+        const confirmationPhrases = [
+            'would you like me to', 'should i', 'do you want me to',
+            'shall i', 'would you like to', 'do you want to proceed',
+            'would you like to proceed', 'should we proceed',
+            'would you like to continue', 'do you want to continue',
+            'please confirm', 'please let me know if you want to proceed',
+            'i can help you with that', 'i can do that for you',
+            'would you like to execute', 'should i execute',
+            'would you like to implement', 'should i implement'
         ];
         
-        // Check if any action keywords are present
-        return actionKeywords.some(keyword => lowercasePrompt.includes(keyword));
+        return confirmationPhrases.some(phrase => lowercaseResponse.includes(phrase));
+    }
+    
+    // Function to extract the action from the response
+    function extractActionFromResponse(response) {
+        const lowercaseResponse = response.toLowerCase();
+        
+        // Look for common action patterns in the response
+        const actionPatterns = [
+            { pattern: /would you like me to (.*?)[?\.]/i, group: 1 },
+            { pattern: /should i (.*?)[?\.]/i, group: 1 },
+            { pattern: /do you want me to (.*?)[?\.]/i, group: 1 },
+            { pattern: /shall i (.*?)[?\.]/i, group: 1 },
+            { pattern: /would you like to (.*?)[?\.]/i, group: 1 },
+            { pattern: /i can (.*?) for you/i, group: 1 },
+            { pattern: /i can help you (.*?)[?\.]/i, group: 1 }
+        ];
+        
+        // Try to extract the action using patterns
+        for (const { pattern, group } of actionPatterns) {
+            const match = response.match(pattern);
+            if (match && match[group]) {
+                return match[group].trim();
+            }
+        }
+        
+        // If no specific pattern matches, look for key sentences
+        const sentences = response.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        for (const sentence of sentences) {
+            if (sentence.toLowerCase().includes('next step') || 
+                sentence.toLowerCase().includes('can proceed') ||
+                sentence.toLowerCase().includes('can help')) {
+                return 'proceed with this suggestion';
+            }
+        }
+        
+        // Default action if no specific action is found
+        return 'proceed with the suggested action';
     }
     
     // Function to save prompt and result to history
