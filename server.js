@@ -49,7 +49,8 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Middleware
-app.use(bodyParser.json({ limit: '10kb' }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 // Determine the static file path based on environment
 const staticPath = process.env.NODE_ENV === 'production' ? '/app' : path.join(__dirname);
