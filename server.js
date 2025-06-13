@@ -63,7 +63,7 @@ let sessionHistory = [];
 // API endpoint for planner agent
 app.post('/api/planner', async (req, res) => {
   try {
-    const { prompt, history } = req.body;
+    const { prompt, history, debug } = req.body;
     
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'Valid prompt is required' });
@@ -75,7 +75,7 @@ app.post('/api/planner', async (req, res) => {
     }
     
     // Call AWS Bedrock Agent
-    const result = await invokeBedRockAgent(prompt, history);
+    const { result, rawResponse } = await invokeBedRockAgent(prompt, history);
     
     // Update session history with sanitized data
     const sanitizedPrompt = prompt.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
@@ -90,6 +90,11 @@ app.post('/api/planner', async (req, res) => {
       sessionHistory = sessionHistory.slice(0, 50);
     }
     
+    // Return raw response if debug mode is enabled
+    if (debug) {
+      return res.json({ result, rawResponse });
+    }
+    
     res.json({ result });
     
   } catch (error) {
@@ -101,6 +106,36 @@ app.post('/api/planner', async (req, res) => {
 // API endpoint to get history
 app.get('/api/history', (req, res) => {
   res.json(sessionHistory);
+});
+
+// API endpoint to test Bedrock Agent response
+app.post('/api/test-bedrock', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'Valid prompt is required' });
+    }
+    
+    // Call AWS Bedrock Agent with debug flag
+    const { result, rawResponse } = await invokeBedRockAgent(prompt);
+    
+    // Return both the processed result and raw response for inspection
+    res.json({
+      result,
+      rawResponse,
+      responseStructure: {
+        hasCompletion: !!rawResponse?.completion,
+        hasOutputText: !!(rawResponse?.output?.text),
+        hasText: !!rawResponse?.text,
+        keys: rawResponse ? Object.keys(rawResponse) : []
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error testing Bedrock Agent:', error);
+    res.status(500).json({ error: 'Failed to test Bedrock Agent' });
+  }
 });
 
 // Serve the main HTML file
@@ -133,7 +168,7 @@ async function invokeBedRockAgent(prompt, history) {
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || 
         !process.env.BEDROCK_AGENT_ID || !process.env.BEDROCK_AGENT_ALIAS_ID) {
       console.log("Using fallback response (AWS credentials or Bedrock Agent IDs not configured)");
-      return fallbackResponse(prompt);
+      return { result: fallbackResponse(prompt), rawResponse: null };
     }
 
     console.log("Preparing Bedrock Agent request");
@@ -153,29 +188,35 @@ async function invokeBedRockAgent(prompt, history) {
     
     // Invoke the Bedrock Agent
     const response = await bedrockAgentClient.send(command);
-    console.log(response);
     console.log("Response received from Bedrock Agent");
     
-    // Extract and return the response
+    // Store the raw response for debugging
+    const rawResponse = JSON.parse(JSON.stringify(response));
+    
+    let result;
+    // Extract the response based on its structure
     if (response && response.completion) {
-      console.log("Inside response.completion");
-      return response.completion;
+      console.log("Found response.completion");
+      result = response.completion;
     } else if (response && response.output && response.output.text) {
-      // Handle the response format for newer versions of the SDK
-      console.log("Inside response.output");
-      return response.output.text;
+      console.log("Found response.output.text");
+      result = response.output.text;
     } else if (response && response.text) {
-      // Alternative response format
-      console.log("Inside response.text");
-      return response.text;
+      console.log("Found response.text");
+      result = response.text;
     } else {
       console.log("Unexpected response format:", JSON.stringify(response, null, 2));
       throw new Error('No recognizable completion in response');
     }
+    
+    return { result, rawResponse };
   } catch (error) {
     console.error('Error invoking Bedrock Agent:', error);
     console.log("Using fallback response due to error");
-    return fallbackResponse(prompt);
+    return { 
+      result: fallbackResponse(prompt), 
+      rawResponse: error.message ? { error: error.message } : null 
+    };
   }
 }
 
